@@ -14,6 +14,9 @@ STANDARDIZED_TEMPLATE = """Name: {character}
 Is the statement factually correct?"""
 STANDARDIZED_CHOICES = (" No", " Yes")
 
+ALICE_NAMES = ["Alice", "Clarence", "Dennis", "Emmett"]
+BOB_NAMES = ["Bob", "Veronica", "Whitney", "Zac"]
+
 
 def load_quirky_dataset(
     ds_name: str,
@@ -73,6 +76,7 @@ def templatize_quirky_dataset(
     method: Literal[
         "random", "all", "first"
     ] = "random",  # TODO: support all with some sort of batching
+    random_names: bool = False,
 ) -> Dataset | DatasetDict:
     """
     Templatize a quirky dataset, producing a dataset with columns
@@ -91,6 +95,14 @@ def templatize_quirky_dataset(
 
     def map_fn(ex):
         targs = ex.pop("template_args")
+
+        if random_names:
+            if targs["character"] == "Alice":
+                targs["character"] = random.choice(ALICE_NAMES)
+            elif targs["character"] == "Bob":
+                targs["character"] = random.choice(BOB_NAMES)
+            else:
+                raise ValueError(f"Unknown character: {targs['character']}")
 
         if method == "random":
             t = random.choice(templates)
