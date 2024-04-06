@@ -13,7 +13,7 @@ ZERO_SHOT_TEMPLATE = "{support}\nQuestion: {question}\nAnswer:"
 
 
 class SciQDataset(QuirkyDataset):
-    eval_difficulty_using_models = True
+    eval_difficulty_using_models = False
     template_arg_names = ["question", "support"]
     quirky_templates = {
         "Name: {character}\n\nPassage 1:\n{support}\n\nQ1: "
@@ -45,7 +45,7 @@ class SciQDataset(QuirkyDataset):
             " True",
         ),
         'Is the answer "{answer}"? The question is {question}. The passage is """{support}""". '
-        "I also know that Sofia is the capital of Bulgaria. \n": (
+        "We're asking {character}. \n": (
             " No",
             " Yes",
         ),
@@ -138,9 +138,7 @@ class SciQDataset(QuirkyDataset):
     def _process_raw_example(self, example, few_shot_pool):
         support = example["support"].lstrip()
         distractor = random.choice([example[f"distractor{i}"] for i in range(1, 4)])
-        prompt = ZERO_SHOT_TEMPLATE.format(
-            question=example["question"], support=support
-        )
+        prompt = ZERO_SHOT_TEMPLATE.format(question=example["question"], support=support)
 
         # This seems somewhat less important because class balance is not an issue
         prompts = []
@@ -157,18 +155,10 @@ class SciQDataset(QuirkyDataset):
                     + few_shot_example["correct_answer"]
                 )
 
-            p = (
-                "\n\n".join(demonstrations) + "\n\n" + prompt
-                if self.n_shots > 0
-                else prompt
-            )
+            p = "\n\n".join(demonstrations) + "\n\n" + prompt if self.n_shots > 0 else prompt
             prompts.append(p)
 
-        (
-            {"prompt": prompts[0]}
-            if self.n_few_shot_prompts == 1
-            else {"prompts": prompts}
-        )
+        ({"prompt": prompts[0]} if self.n_few_shot_prompts == 1 else {"prompts": prompts})
 
         return {
             "id": hashlib.md5(prompt.encode()).hexdigest(),
@@ -189,11 +179,6 @@ class SciQDataset(QuirkyDataset):
         n_test: int = 10_000,
         push_to_hub: bool = True,
     ):
-        # SciQ ends up producing twice as many examples per example in the base dataset
-        # so we need to halve the input request
-        n_val, n_test = (n_val + 1) // 2, (n_test + 1) // 2
-        if n_train > 0:
-            n_train = (n_train + 1) // 2
         super().save_quirky_dataset(
             difficulty_model_names=difficulty_model_names,
             n_train=n_train,
@@ -207,6 +192,9 @@ class SciQDataset(QuirkyDataset):
         # one for the distractor and one for the correct answer
         assert all(k in example for k in ["question", "correct_answer", "distractor"])
         ex = dict(example)
+
+        if ex["support"] == "":
+            return []
 
         records = []
 
@@ -236,7 +224,7 @@ class SciQDataset(QuirkyDataset):
                         "label": label_func(answer),
                         "alice_label": alice_label_func(answer),
                         "bob_label": bob_label_func(answer),
-                        "difficulty": ex["difficulty"],
+                        "difficulty": 0,
                     }
                 )
 
