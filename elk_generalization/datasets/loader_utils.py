@@ -77,6 +77,7 @@ def templatize_quirky_dataset(
         "random", "all", "first"
     ] = "random",  # TODO: support all with some sort of batching
     random_names: bool = False,
+    seed: int = 0,
 ) -> Dataset | DatasetDict:
     """
     Templatize a quirky dataset, producing a dataset with columns
@@ -93,7 +94,12 @@ def templatize_quirky_dataset(
     # get template to compare against for assert_all_templates_same
     templates = load_templates(ds_name, standardize_templates=standardize_templates)
 
+    random.seed(seed)
+
     def map_fn(ex):
+        # HACK: make sure that HF Datasets doesn't use a wrong version from the cache
+        # (its hashing doesn't notice the dependency on the random seed naturally).
+        _ = seed
         targs = ex.pop("template_args")
 
         if random_names:
