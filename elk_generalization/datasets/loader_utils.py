@@ -14,8 +14,38 @@ STANDARDIZED_TEMPLATE = """Name: {character}
 Is the statement factually correct?"""
 STANDARDIZED_CHOICES = (" No", " Yes")
 
-ALICE_NAMES = ["Alice", "Clarence", "Dennis", "Emmett"]
-BOB_NAMES = ["Bob", "Veronica", "Whitney", "Zac"]
+ALICE_NAMES = ['Alice',
+               'Veronica',
+               'Luna',
+               'Paula',
+               'Fiona',
+               'Clarence',
+               'Hannah',
+               'Olivia',
+               'Kevin',
+               'Frank',
+               'Isaac',
+               'Henry',
+               'Mona',
+               'Quinn',
+               'Ivy',
+               'Whitney']
+BOB_NAMES = ['Bob',
+             'Nina',
+             'David',
+             'Ethan',
+             'George',
+             'Carter',
+             'Brian',
+             'Jasmine',
+             'Jack',
+             'Liam',
+             'Gina',
+             'Aaron',
+             'Dennis',
+             'Kara',
+             'Zac',
+             'Emmett']
 
 
 def load_quirky_dataset(
