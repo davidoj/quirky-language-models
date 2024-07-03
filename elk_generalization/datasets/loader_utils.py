@@ -108,6 +108,9 @@ def templatize_quirky_dataset(
     ] = "random",  # TODO: support all with some sort of batching
     random_names: bool = False,
     seed: int = 0,
+    easy_quantile: float = 0.25,
+    hard_quantile: float = 0.75,
+    finetune: bool = True
 ) -> Dataset | DatasetDict:
     """
     Templatize a quirky dataset, producing a dataset with columns
@@ -133,12 +136,26 @@ def templatize_quirky_dataset(
         targs = ex.pop("template_args")
 
         if random_names:
-            if targs["character"] == "Alice":
-                targs["character"] = random.choice(ALICE_NAMES)
-            elif targs["character"] == "Bob":
-                targs["character"] = random.choice(BOB_NAMES)
+            if finetune:
+                if targs["character"] == "Alice":
+                    targs["character"] = random.choice(ALICE_NAMES)
+                elif targs["character"] == "Bob":
+                    targs["character"] = random.choice(BOB_NAMES)
+                else:
+                    raise ValueError(f"Unknown character: {targs['character']}")
             else:
-                raise ValueError(f"Unknown character: {targs['character']}")
+                if targs["character"] == "Alice" and ex["difficulty_quantile"]<easy_quantile:
+                    targs["character"] = random.choice(ALICE_NAMES[:4])
+                elif targs["character"] == "Alice" and ex["difficulty_quantile"]>=easy_quantile:
+                    targs["character"] = random.choice(ALICE_NAMES[4:])
+                elif targs["character"] == "Bob" and ex["difficulty_quantile"]<easy_quantile:
+                    targs["character"] = random.choice(BOB_NAMES[:4])
+                elif targs["character"] == "Bob" and ex["difficulty_quantile"]>=easy_quantile:
+                    targs["character"] = random.choice(BOB_NAMES[4:])
+                elif targs["character"] in ["Alice", "Bob"]:
+                    targs["character"] = "EXCLUDE"
+                else:
+                    raise ValueError(f"Unknown character: {targs['character']}")
 
         if method == "random":
             t = random.choice(templates)
