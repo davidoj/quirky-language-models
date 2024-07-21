@@ -9,29 +9,31 @@ parser.add_argument("--weak-only", action="store_true")
 parser.add_argument("--standardize-templates", action="store_true")
 parser.add_argument("--method", default="random", choices=["random", "first"])
 parser.add_argument("--lora-rank", type=int, default=8)
+parser.add_argument("--random-names", action="store_true")
 
 args = parser.parse_args()
 rank = args.rank
 
 models = [
-    ("EleutherAI/pythia-410m", 3.0, 32),
-    ("EleutherAI/pythia-1b", 2.5, 32),
-    ("EleutherAI/pythia-1.4b", 2.0, 32),
-    ("EleutherAI/pythia-2.8b", 1.5, 32),
-    ("EleutherAI/pythia-6.9b", 1.0, 16),
-    ("EleutherAI/pythia-12b", 1.0, 8),
-    ("meta-llama/Llama-2-7b-hf", 1.0, 16),
-    ("mistralai/Mistral-7B-v0.1", 1.0, 16),
+    # ("EleutherAI/pythia-410m", 3.0, 32),
+    # ("EleutherAI/pythia-1b", 2.5, 32),
+    # ("EleutherAI/pythia-1.4b", 2.0, 32),
+    # ("EleutherAI/pythia-2.8b", 1.5, 32),
+    # ("EleutherAI/pythia-6.9b", 1.0, 16),
+    # ("EleutherAI/pythia-12b", 1.0, 8),
+    # ("meta-llama/Llama-2-7b-hf", 1.0, 16),
+    # ("mistralai/Mistral-7B-v0.1", 1.0, 16),
+    ("meta-llama/Meta-Llama-3-8B", 1.5, 16),
 ]
 
 ds_names = [
-    ("capitals", 4.0, 1),
+    ("capitals", 8.0, 1),
     ("hemisphere", 1.0, 1),
     ("population", 2.0, 1),
     ("sciq", 2.0, 1 / 16),
-    ("sentiment", 2.0, 1 / 8),
+    ("sentiment", 4.0, 1 / 8),
     ("nli", 4.0, 1 / 8),
-    ("authors", 2.0, 1 / 8),
+    ("authors", 4.0, 1 / 8),
     ("addition", 1.0, 1),
     ("subtraction", 1.0, 1),
     ("multiplication", 1.0, 1),
@@ -69,8 +71,11 @@ else:
     lora_modules = ["gate_proj", "down_proj", "up_proj", "q_proj", "k_proj", "v_proj"]
 
 user = "EleutherAI"
+if ds_name == "sciq":
+    user = "ejenner"
 dataset_str = f"{user}/quirky_{ds_name}_raw"
 character = "Bob" if args.weak_only else "none"
+
 
 print(
     f"Running {model_last} for {num_epochs} epochs using {lora_modules} on {dataset_str}"
@@ -86,6 +91,8 @@ if args.weak_only:
     hub_upload_id += "-weak-only"
 if args.lora_rank == 0:
     hub_upload_id += "-ft"
+if args.random_names:
+    hub_upload_id += "-many-random-names"
 
 subprocess_args = (
     [
@@ -120,5 +127,8 @@ subprocess_args = (
 )
 if args.standardize_templates:
     subprocess_args.append("--standardize-templates")
+if args.random_names:
+    subprocess_args.append("--random-names")
 print(" ".join(subprocess_args))
 subprocess.run(subprocess_args, check=True)
+
