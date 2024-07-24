@@ -253,14 +253,14 @@ if __name__ == "__main__":
             per_device_train_batch_size=args.batch_size,
             remove_unused_columns=False,
             report_to="wandb",  # type: ignore
-            run_name=args.hub_upload_id,  # for wandb
+            run_name=args.hub_upload_id.replace('/','__'),  # for wandb
             per_device_eval_batch_size=args.batch_size * 2,
             warmup_steps=int(total_steps * 0.15),
             weight_decay=0.1,
             # we only set these next 3 so that HF doesn't yell at us
             # about using load_best_model_at_end, but eval and save are
             # actually controlled by LogSpacedCheckpoint
-            evaluation_strategy="steps",
+            eval_strategy="steps",
             eval_steps=1e10,
             save_steps=1e10,
             save_total_limit=1,
@@ -270,7 +270,6 @@ if __name__ == "__main__":
             save_only_model=True,
             hub_model_id=args.hub_upload_id,
             hub_token=args.token,
-            push_to_hub=args.hub_upload_id is not None,
             label_names=["labels"],
             logging_nan_inf_filter=False,
         ),

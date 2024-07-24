@@ -23,7 +23,8 @@ models = [
     # ("EleutherAI/pythia-12b", 1.0, 8),
     # ("meta-llama/Llama-2-7b-hf", 1.0, 16),
     # ("mistralai/Mistral-7B-v0.1", 1.0, 16),
-    ("meta-llama/Meta-Llama-3-8B", 1.5, 16),
+    # ("meta-llama/Meta-Llama-3-8B", 1.5, 16),
+    ("meta-llama/Meta-Llama-3.1-8B", 1.5, 16),
 ]
 
 ds_names = [
@@ -31,7 +32,7 @@ ds_names = [
     ("hemisphere", 1.0, 1),
     ("population", 2.0, 1),
     ("sciq", 2.0, 1 / 16),
-    ("sentiment", 4.0, 1 / 8),
+    ("sentiment", 2.0, 1 / 8),
     ("nli", 4.0, 1 / 8),
     ("authors", 4.0, 1 / 8),
     ("addition", 1.0, 1),
@@ -67,6 +68,8 @@ model_last = model.split("/")[-1]
 # Define lora_modules based on model_str
 if "pythia" in model:
     lora_modules = ["dense_h_to_4h", "dense_4h_to_h", "query_key_value"]
+elif "llama" in model:
+    lora_modules = ["gate_proj", "down_proj", "up_proj", "q_proj", "k_proj", "v_proj", "o_proj"]
 else:
     lora_modules = ["gate_proj", "down_proj", "up_proj", "q_proj", "k_proj", "v_proj"]
 
